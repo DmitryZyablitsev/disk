@@ -63,6 +63,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: bundle config set --local path '/usr/local/bundle' && bundle install --jobs 4 --retry 3
+
       - name: Run tests
         env:
           RAILS_ENV: test
