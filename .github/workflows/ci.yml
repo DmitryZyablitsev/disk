@@ -22,14 +22,6 @@ jobs:
       - name: Install dependencies
         run: bundle config set --local path '/usr/local/bundle' && bundle install --jobs 4 --retry 3
 
-
-      # - name: Set up Ruby
-      #   uses: ruby/setup-ruby@v1
-      #   with:
-      #     ruby-version: "3.4.3"
-      #     bundler-cache: true
-      #     working-directory: disk
-
       - name: Scan for common Rails security vulnerabilities
         run: bin/brakeman --no-pager
 
@@ -46,14 +38,6 @@ jobs:
 
       - name: Install dependencies
         run: bundle config set --local path '/usr/local/bundle' && bundle install --jobs 4 --retry 3
-
-
-      # - name: Set up Ruby
-      #   uses: ruby/setup-ruby@v1
-      #   with:
-      #     ruby-version: "3.4.3"
-      #     bundler-cache: true
-      #     working-directory: disk
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
@@ -82,6 +66,5 @@ jobs:
         if: failure()
         with:
           name: screenshots_service_disk
-          # path: ${{ github.workspace }}/disk/tmp/screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
