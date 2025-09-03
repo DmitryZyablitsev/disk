@@ -64,7 +64,7 @@ jobs:
         with:
           ruby-version: "3.4.3"
           bundler-cache: true
-          working-directory: disk
+          # working-directory: disk
 
       - name: Run tests
         env:
@@ -76,5 +76,6 @@ jobs:
         if: failure()
         with:
           name: screenshots_service_disk
-          path: ${{ github.workspace }}/disk/tmp/screenshots
+          # path: ${{ github.workspace }}/disk/tmp/screenshots
+          path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
