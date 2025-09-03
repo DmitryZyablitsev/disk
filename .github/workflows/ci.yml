@@ -3,88 +3,68 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  scan_ruby:
+  scan_ruby_service_disk:
+    if: contains(github.event.head_commit.message, 'service_disk') || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: disk
+    container: &my_container
+      image: dimazyablicev/disk:amd64 # Ваш кастомный образ
+      options: --user 1001:1001
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+      - name: Install dependencies
+        run: bundle config set --local path '/usr/local/bundle' && bundle install --jobs 4 --retry 3
 
-      - name: Scan for common Rails security vulnerabilities using static analysis
+      - name: Scan for common Rails security vulnerabilities
         run: bin/brakeman --no-pager
 
-  scan_js:
+  lint_service_disk:
+    if: contains(github.event.head_commit.message, 'service_disk') || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: disk
+    container: *my_container
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-
-      - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: bin/importmap audit
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+      - name: Install dependencies
+        run: bundle config set --local path '/usr/local/bundle' && bundle install --jobs 4 --retry 3
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
-  test:
+  test_service_disk:
+    if: contains(github.event.head_commit.message, 'service_disk') || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-
-    # services:
-    #  redis:
-    #    image: redis
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    defaults:
+      run:
+        working-directory: disk
+    container: *my_container
     steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config google-chrome-stable
-
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+      - name: Install dependencies
+        run: bundle config set --local path '/usr/local/bundle' && bundle install --jobs 4 --retry 3
 
       - name: Run tests
         env:
           RAILS_ENV: test
-          # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: screenshots
+          name: screenshots_service_disk
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
