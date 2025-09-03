@@ -55,6 +55,7 @@ jobs:
     container:
       # image: ghcr.io/your-username/your-rails-image:latest # Ваш кастомный образ
       image: dimazyablicev/disk:amd64 # Ваш кастомный образ
+      options: --user root
       # credentials:
       #   username: ${{ github.actor }}
       #   password: ${{ secrets.GITHUB_TOKEN }}
