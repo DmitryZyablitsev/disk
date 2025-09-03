@@ -4,7 +4,7 @@ PRODUCTION_COMPOSE_FILE := ./docker/docker-compose.production.yml
 
 # Install production dependencies
 production-rails-bundle:
-	docker compose -f $(COMPOSE_FILE) exec -e RAILS_ENV=production rails_app bash -c "bundle install --without development test"
+	docker compose -f $(COMPOSE_FILE) exec -e RAILS_ENV=production rails_app bash -c "bundle config set without 'development test' && bundle install"
 
 # Precompile assets for production
 production-rails-assets:
