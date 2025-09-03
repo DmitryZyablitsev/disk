@@ -54,7 +54,8 @@ jobs:
         working-directory: disk
     container:
       image: dimazyablicev/disk:amd64 # Ваш кастомный образ
-      options: --user rails
+      # options: --user
+      options: --user 1001:1001
       # credentials:
       #   username: ${{ github.actor }}
       #   password: ${{ secrets.GITHUB_TOKEN }}
