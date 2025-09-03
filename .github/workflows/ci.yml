@@ -52,6 +52,12 @@ jobs:
     defaults:
       run:
         working-directory: disk
+    container:
+      # image: ghcr.io/your-username/your-rails-image:latest # Ваш кастомный образ
+      image: dimazyablicev/disk:latest # Ваш кастомный образ
+      # credentials:
+      #   username: ${{ github.actor }}
+      #   password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
