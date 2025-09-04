@@ -69,8 +69,9 @@ jobs:
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
 
-  docker:
+  build_and_push_docker_service_disk:
     runs-on: ubuntu-latest   # окружение, на котором будет выполняться job
+    needs: [scan_ruby_service_disk, lint_service_disk, test_service_disk]
     defaults:
       run:
         working-directory: disk
