@@ -1,6 +1,3 @@
-# syntax=docker/dockerfile:1
-# check=error=true
-
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
 # docker build -t blog_15min .
 # docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name blog_15min blog_15min
@@ -8,11 +5,17 @@
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
-ARG RUBY_VERSION=3.2.2
-FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
+FROM dimazyablicev/base-ubuntu:latest AS base
 
 # Rails app lives here
 WORKDIR /rails
+
+# YJIT is a new JIT compiler for Ruby that can significantly improve performance
+# Enable YJIT (Ruby's Just-In-Time compiler) for better performance
+ENV RUBY_YJIT_ENABLE=1
+ENV RUBYOPT="--yjit"
+
+USER root
 
 # Install base packages
 RUN apt-get update -qq && \
@@ -48,9 +51,6 @@ RUN bundle exec bootsnap precompile app/ lib/
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
-
-
-
 # Final stage for app image
 FROM base
 
@@ -59,10 +59,12 @@ COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
 
 # Run and own only the runtime files as a non-root user for security
-RUN groupadd --system --gid 1000 rails && \
-    useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp
+# RUN groupadd --system --gid 1000 rails && \
+#     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
+#     chown -R rails:rails db log storage tmp
+RUN chown -R rails:rails db log storage tmp
 USER 1000:1000
+# USER rails:rails
 
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]

@@ -1,0 +1,31 @@
+name: disk-production
+
+services:
+  rails_app:
+    build:
+      context: ../disk
+      dockerfile: ./Dockerfile
+    image: dimazyablicev/disk.prod:latest
+
+    environment:
+      RAILS_ENV: production
+      BUNDLE_PATH: /usr/local/bundle
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      # SECRET_KEY_BASE должен приходить из .env.production или CI/CD
+      # SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+    #   - bundle_cache:/usr/local/bundle
+      - rails_storage:/rails/storage
+      - sqlite_data:/rails/db
+
+    working_dir: /rails
+    command: bin/rails server -b 0.0.0.0 -p 3000
+
+volumes:
+  sqlite_data:
+  rails_storage:
+#   bundle_cache:
