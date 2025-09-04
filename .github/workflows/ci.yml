@@ -89,7 +89,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .              # контекст сборки (где лежит проект)
+          context: ./disk              # контекст сборки (где лежит проект)
           file: ./Dockerfile      # путь к твоему Dockerfile
           push: true
           tags: |
