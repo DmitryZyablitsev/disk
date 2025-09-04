@@ -90,6 +90,8 @@ jobs:
         run: |
           echo "Current directory:"
           pwd
+          echo "cd disk"
+          cd disk
           echo "Files here:"
           ls -la
 
