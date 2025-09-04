@@ -68,3 +68,27 @@ jobs:
           name: screenshots_service_disk
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
+
+  build_and_push_docker_service_disk:
+    runs-on: ubuntu-latest   # окружение, на котором будет выполняться job
+    needs: [scan_ruby_service_disk, lint_service_disk, test_service_disk]
+    steps:
+      - uses: actions/checkout@v4
+
+      # 2.1 Логин в DockerHub
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 2.2 Сборка и пуш Docker образа из готового Dockerfile
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./disk                     # контекст сборки (где лежит проект)
+          file: ./disk/Dockerfile             # путь к твоему Dockerfile я хз почему так
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/disk:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/disk:${{ github.sha }}
