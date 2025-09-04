@@ -72,9 +72,9 @@ jobs:
   build_and_push_docker_service_disk:
     runs-on: ubuntu-latest   # окружение, на котором будет выполняться job
     needs: [scan_ruby_service_disk, lint_service_disk, test_service_disk]
-    defaults:
-      run:
-        working-directory: disk
+    # defaults:
+    #   run:
+    #     working-directory: disk
     steps:
       - uses: actions/checkout@v4
 
@@ -90,7 +90,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./disk              # контекст сборки (где лежит проект)
-          file: Dockerfile      # путь к твоему Dockerfile
+          file: Dockerfile             # путь к твоему Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/disk:latest
