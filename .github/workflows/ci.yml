@@ -74,7 +74,7 @@ jobs:
     # needs: [scan_ruby_service_disk, lint_service_disk, test_service_disk]
     defaults:
       run:
-        working-directory: ./disk
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
 
@@ -98,9 +98,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./disk              # контекст сборки (где лежит проект)
-          file: Dockerfile             # путь к твоему Dockerfile
+          file: ./disk/Dockerfile             # путь к твоему Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/disk:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/disk:${{ github.sha }}
-
