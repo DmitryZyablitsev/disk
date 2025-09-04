@@ -90,7 +90,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./disk              # контекст сборки (где лежит проект)
-          file: ./Dockerfile      # путь к твоему Dockerfile
+          file: Dockerfile      # путь к твоему Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/disk:latest
