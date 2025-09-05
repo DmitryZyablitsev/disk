@@ -3,6 +3,7 @@ include Makefiles/MainImages.mk
 include Makefiles/Project.mk
 include Makefiles/Rails.mk
 include Makefiles/Production-rails.mk
+include ansible/Ansible.mk
 
 # Main help command
 help:

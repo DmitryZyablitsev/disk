@@ -1,0 +1,67 @@
+#сдесь мы только ДОБАВЛЯЕМ новые правила
+- name: Server preparation (create user, open new SSH port)
+  hosts: configuring_server_step_1
+  become: yes
+  vars:
+    allowed_ports_stage1:
+      - 22
+      - 80
+      - 443
+
+  tasks:
+    - name: Create a new user
+      ansible.builtin.user:
+        name: "{{ new_user }}"
+        shell: /bin/bash
+        create_home: yes
+
+    - name: Set authorized key for new user
+      ansible.builtin.authorized_key:
+        user: "{{ new_user }}"
+        state: present
+        key: "{{ lookup('file', ssh_pub_key_path) }}"
+
+    - name: Allow new user to become root
+      ansible.builtin.user:
+        name: "{{ new_user }}"
+        groups: sudo
+        append: yes
+
+    - name: Настройка sudo без пароля для пользователя развертывания
+      ansible.builtin.copy:
+        content: "{{ new_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        dest: "/etc/sudoers.d/{{ new_user }}"
+        mode: '0440'
+        validate: 'visudo -cf %s'
+
+    - name: Убедитесь, что пользователь может выполнить sudo без пароля
+      ansible.builtin.command:
+        cmd: sudo -u {{ new_user }} sudo -n whoami
+      register: sudo_test
+      changed_when: false
+      failed_when: sudo_test.rc != 0
+
+    # - name: Install ufw
+    #   apt:
+    #     name: ufw
+    #     state: present
+    #     update_cache: yes
+
+    # - name: Включить ufw с запрещением по умолчанию
+    #   community.general.ufw:
+    #     state: enabled
+    #     policy: deny
+
+  #   - name: Разрешить необходимые порты (этап 1)
+  #     community.general.ufw:
+  #       rule: allow
+  #       port: "{{ item }}"
+  #     loop: "{{ allowed_ports_stage1 }}"
+  #     notify: Restart ssh
+
+
+  # handlers:
+  #   - name: Restart ssh
+  #     ansible.builtin.service:
+  #       name: ssh
+  #       state: restarted

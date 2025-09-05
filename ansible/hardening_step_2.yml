@@ -1,0 +1,65 @@
+#сдесь мы ЗАКРЫВАЕМ лишнее
+- name: Server hardening (disable root, remove old users)
+  hosts: configuring_server_step_2
+  become: yes
+  vars:
+    allowed_ports_stage2:
+      - 22
+      - 80
+      - 443
+    remove_users:
+      - test
+      - ubuntu
+      - admin
+
+  tasks:
+    - name: Install ufw
+      apt:
+        name: ufw
+        state: present
+        update_cache: yes
+
+    - name: Отключить root login
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: "PermitRootLogin no"
+
+    - name: Отключить аутентификацию по паролю
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: "PasswordAuthentication no"
+
+    - name: Разрешить только конечные порты
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+      loop: "{{ allowed_ports_stage2 }}"
+
+    - name: Отрицать все остальное
+      community.general.ufw:
+        state: enabled
+        policy: deny
+
+    - name: Remove default users
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+        remove: yes
+      loop: "{{ remove_users }}"
+      ignore_errors: true
+      notify: Restart ssh
+
+    # - name: Execute sudo reboot
+    #   ansible.builtin.shell:
+    #     cmd: "sudo reboot"
+    #     warn: false
+    #   async: 1
+    #   poll: 0
+
+  handlers:
+    - name: Restart ssh
+      ansible.builtin.systemd:
+        name: ssh
+        state: restarted
