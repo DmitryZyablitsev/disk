@@ -52,3 +52,4 @@ docker-compose.override.yml
 blog_15min/tmp/.bash_history
 
 docker/docker-token.txt
+# nginx/nginx.conf

@@ -1,0 +1,75 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Copy deployment files
+      run: |
+        sudo rm /etc/nginx/nginx.conf
+        sudo cp nginx/nginx.conf /etc/nginx/nginx.conf
+        mkdir -p deployment
+        cp docker/docker-compose.production.yml deployment/docker-compose.yml
+
+    - name: Проверка конфигурации и перезагрузка nginx
+      uses: appleboy/ssh-action@v0.1.8
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          sudo nginx -t
+          sudo systemctl reload nginx
+
+
+    - name: Deploy to server
+      uses: appleboy/scp-action@v0.1.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "deployment/*"
+        target: "/home/deploy/rails_app/"
+
+    - name: Run deployment on server
+      uses: appleboy/ssh-action@v0.1.8
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /home/deploy/rails_app/deployment
+
+          # Pull latest images
+          docker compose pull
+
+          # Stop and remove old containers
+          docker compose down
+
+          # Start new containers с передачей секретов
+          RAILS_MASTER_KEY=${{ secrets.RAILS_MASTER_KEY }} docker compose up -d
+
+          # Cleanup old images
+          docker image prune -f
+
+    - name: Verify deployment
+      uses: appleboy/ssh-action@v0.1.8
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /home/deploy/rails_app/deployment
+          docker ps
+          docker compose -f docker-compose.yml logs --tail=50
+

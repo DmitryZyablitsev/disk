@@ -1,0 +1,50 @@
+---
+- name: Install Nginx and setup SSL
+  hosts: webservers
+  become: true
+
+  vars:
+    domain_name: lumeko.ru
+    email: uksm.vas@mail.ru   # почта для Let's Encrypt
+
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - nginx
+          - python3-certbot-nginx
+        state: present
+        update_cache: true
+
+    - name: Start and enable nginx
+      service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Allow HTTP and HTTPS in UFW
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+      loop:
+        - 80
+        - 443
+
+    - name: Obtain SSL certificate with certbot
+      ansible.builtin.command: >
+        certbot --nginx -d {{ domain_name }} --non-interactive --agree-tos -m {{ email }} --redirect
+      args:
+        creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+
+    - name: Install cron package
+      apt:
+        name: cron
+        state: present
+        update_cache: true
+
+    - name: Убедитесь, что включено автоматическое обновление certbot
+      cron:
+        name: "Renew Let's Encrypt certificates"
+        job: "certbot renew --quiet"
+        minute: "0"
+        hour: "3"
