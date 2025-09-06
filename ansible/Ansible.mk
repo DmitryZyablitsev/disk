@@ -4,8 +4,8 @@
 # Добавьте новый ключ
 # ssh-keyscan -H 45.138.74.25 >> ~/.ssh/known_hosts
 hardening-step-1:
-	ssh-keygen -f ~/.ssh/known_hosts -R '45.138.74.25'
-	ssh-keyscan -H 45.138.74.25 >> ~/.ssh/known_hosts
+	ssh-keygen -f ~/.ssh/known_hosts -R '95.81.121.50'
+	ssh-keyscan -H 95.81.121.50 >> ~/.ssh/known_hosts
 	ansible-playbook ansible/hardening_step_1.yml -i ansible/inventory1.ini
 
 hardening-step-2:
